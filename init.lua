@@ -66,7 +66,57 @@ rtp:prepend(lazypath)
 
 require('lazy').setup({
   'NMAC427/guess-indent.nvim',
-  'github/copilot.vim',
+
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup {
+        panel = {
+          enabled = true,
+          auto_refresh = false,
+          keymap = {
+            jump_prev = '[[',
+            jump_next = ']]',
+            accept = '<CR>',
+            refresh = 'gr',
+            open = '<M-CR>',
+          },
+          layout = {
+            position = 'bottom',
+            ratio = 0.4,
+          },
+        },
+        suggestion = {
+          enabled = true,
+          auto_trigger = true,
+          debounce = 75,
+          keymap = {
+            accept = false, -- We'll handle this manually
+            accept_word = false,
+            accept_line = false,
+            next = '<M-]>',
+            prev = '<M-[>',
+            dismiss = '<C-]>',
+          },
+        },
+        filetypes = {
+          yaml = false,
+          markdown = false,
+          help = false,
+          gitcommit = false,
+          gitrebase = false,
+          hgcommit = false,
+          svn = false,
+          cvs = false,
+          ['.'] = false,
+        },
+        copilot_node_command = 'node',
+        server_opts_overrides = {},
+      }
+    end,
+  },
 
   {
     'folke/which-key.nvim',
@@ -433,6 +483,89 @@ require('lazy').setup({
     },
   },
 })
+
+-- Smart Tab functionality for Copilot
+local function smart_tab()
+  local copilot = require('copilot.suggestion')
+  
+  -- If Copilot suggestion is visible, accept it
+  if copilot.is_visible() then
+    copilot.accept()
+    return
+  end
+  
+  -- Check if blink.cmp completion menu is visible
+  local blink_cmp = require('blink.cmp')
+  if blink_cmp.is_visible() then
+    blink_cmp.select_next()
+    return
+  end
+  
+  -- Check if we're in a snippet and can jump
+  local luasnip_ok, luasnip = pcall(require, 'luasnip')
+  if luasnip_ok then
+    if luasnip.expandable() then
+      luasnip.expand()
+      return
+    elseif luasnip.jumpable(1) then
+      luasnip.jump(1)
+      return
+    end
+  end
+  
+  -- Default to normal tab behavior
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'n', false)
+end
+
+local function smart_shift_tab()
+  local blink_cmp = require('blink.cmp')
+  
+  -- If completion menu is visible, select previous item
+  if blink_cmp.is_visible() then
+    blink_cmp.select_prev()
+    return
+  end
+  
+  -- If we can jump back in snippet
+  local luasnip_ok, luasnip = pcall(require, 'luasnip')
+  if luasnip_ok and luasnip.jumpable(-1) then
+    luasnip.jump(-1)
+    return
+  end
+  
+  -- Default to normal shift-tab behavior
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<S-Tab>', true, false, true), 'n', false)
+end
+
+-- Set up the smart tab keymaps
+vim.keymap.set('i', '<Tab>', smart_tab, { desc = 'Smart Tab: Copilot → Completion → Snippet → Normal' })
+vim.keymap.set('i', '<S-Tab>', smart_shift_tab, { desc = 'Smart Shift-Tab: Completion ← Snippet ← Normal' })
+
+-- Additional Copilot keymaps for better VS Code-like experience
+vim.keymap.set('i', '<M-CR>', function()
+  require('copilot.panel').open()
+end, { desc = 'Open Copilot panel' })
+
+vim.keymap.set('i', '<C-]>', function()
+  require('copilot.suggestion').dismiss()
+end, { desc = 'Dismiss Copilot suggestion' })
+
+-- Toggle Copilot for current buffer
+vim.keymap.set('n', '<leader>tc', function()
+  local buf = vim.api.nvim_get_current_buf()
+  local ft = vim.bo[buf].filetype
+  
+  if vim.b[buf].copilot_disabled then
+    vim.b[buf].copilot_disabled = false
+    vim.cmd('Copilot enable')
+    print('Copilot enabled for ' .. ft)
+  else
+    vim.b[buf].copilot_disabled = true
+    require('copilot.suggestion').dismiss()
+    vim.cmd('Copilot disable')
+    print('Copilot disabled for ' .. ft)
+  end
+end, { desc = '[T]oggle [C]opilot for current buffer' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
