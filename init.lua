@@ -65,8 +65,6 @@ local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
 
 require('lazy').setup({
-  'NMAC427/guess-indent.nvim',
-
   {
     'zbirenbaum/copilot.lua',
     cmd = 'Copilot',
@@ -540,14 +538,12 @@ require('lazy').setup({
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { 
-        enable = true, 
-        disable = { 'ruby' } -- Remove HTML from disable list if it was there
+        enable = false, -- Disable treesitter indenting
       },
     },
   },
 
   require 'kickstart.plugins.debug',
-  require 'kickstart.plugins.indent_line',
   require 'kickstart.plugins.gitsigns',
 }, {
   ui = {
@@ -652,70 +648,15 @@ vim.keymap.set('n', '<leader>tc', function()
   end
 end, { desc = '[T]oggle [C]opilot for current buffer' })
 
--- HTML-specific indentation settings
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'html', 'xml', 'xhtml' },
-  callback = function()
-    vim.bo.shiftwidth = 2
-    vim.bo.tabstop = 2
-    vim.bo.softtabstop = 2
-    vim.bo.expandtab = true
-    vim.bo.autoindent = true
-    vim.bo.smartindent = false
-    
-    -- Use treesitter for indentation if available, fallback to custom function
-    if vim.treesitter.get_parser(0, 'html', { error = false }) then
-      vim.bo.indentexpr = "v:lua.require'nvim-treesitter.indent'.get_indent()"
-    else
-      -- Custom indentation function for HTML
-      vim.bo.indentexpr = "v:lua.html_indent()"
-    end
-    
-    -- Set up specific indent keys for HTML
-    vim.bo.indentkeys = '0{,0},0),0],0},!^F,o,O,e,*<Return>,<>>,<<>,/'
-  end,
-})
-
--- Custom HTML indentation function
-function _G.html_indent()
-  local line = vim.fn.line('.')
-  local prev_line = vim.fn.getline(line - 1)
-  local curr_line = vim.fn.getline(line)
-  
-  -- Get previous line indentation
-  local prev_indent = vim.fn.indent(line - 1)
-  
-  -- If previous line opens a tag, increase indent
-  if prev_line:match('<%s*[^/][^>]*[^/]>%s*$') then
-    return prev_indent + vim.bo.shiftwidth
-  end
-  
-  -- If current line closes a tag, decrease indent
-  if curr_line:match('^%s*</') then
-    return math.max(0, prev_indent - vim.bo.shiftwidth)
-  end
-  
-  -- If previous line is a closing tag, maintain same level for new opening tags
-  if prev_line:match('</[^>]+>%s*$') then
-    return prev_indent
-  end
-  
-  -- Default: maintain previous indentation
-  return prev_indent
-end
-
--- Disable problematic LSP formatting for HTML if needed
-vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('html-lsp-config', { clear = true }),
-  callback = function(event)
-    local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if client and client.name == 'html' then
-      -- Disable LSP formatting for HTML to prevent conflicts
-      client.server_capabilities.documentFormattingProvider = false
-      client.server_capabilities.documentRangeFormattingProvider = false
-    end
-  end,
-})
+-- Set global indentation settings - 4 spaces for everything
+vim.o.tabstop = 4        -- Number of spaces a tab counts for
+vim.o.shiftwidth = 4     -- Number of spaces for each step of (auto)indent
+vim.o.softtabstop = 4    -- Number of spaces a tab counts for while editing
+vim.o.expandtab = true   -- Use spaces instead of tabs
+vim.o.autoindent = true  -- Copy indent from current line when starting new line
+vim.o.smartindent = false -- Disable smart indenting
+vim.o.cindent = false    -- Disable C-style indenting
+vim.o.indentexpr = ''    -- Disable expression-based indenting
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
