@@ -119,6 +119,68 @@ require('lazy').setup({
   },
 
   {
+    'CopilotC-Nvim/CopilotChat.nvim',
+    branch = 'canary',
+    dependencies = {
+      { 'zbirenbaum/copilot.lua' }, -- or github/copilot.vim
+      { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
+    },
+    build = 'make tiktoken', -- Only on MacOS or Linux
+    opts = {
+      debug = false, -- Enable debugging
+      -- See Configuration section for rest
+    },
+    config = function(_, opts)
+      local chat = require('CopilotChat')
+      local select = require('CopilotChat.select')
+      
+      chat.setup(opts)
+
+      -- Setup keymaps
+      vim.keymap.set('n', '<leader>cc', '<cmd>CopilotChat<CR>', { desc = '[C]opilot [C]hat' })
+      vim.keymap.set('v', '<leader>cc', '<cmd>CopilotChat<CR>', { desc = '[C]opilot [C]hat' })
+      
+      -- Quick chat with your buffer
+      vim.keymap.set('n', '<leader>cb', function()
+        local input = vim.fn.input('Quick Chat: ')
+        if input ~= '' then
+          require('CopilotChat').ask(input, { selection = select.buffer })
+        end
+      end, { desc = '[C]opilot Chat [B]uffer' })
+
+      -- Chat with selection
+      vim.keymap.set('v', '<leader>cs', function()
+        local input = vim.fn.input('Quick Chat: ')
+        if input ~= '' then
+          require('CopilotChat').ask(input, { selection = select.visual })
+        end
+      end, { desc = '[C]opilot Chat [S]election' })
+
+      -- Predefined prompts
+      vim.keymap.set('n', '<leader>ce', '<cmd>CopilotChatExplain<CR>', { desc = '[C]opilot Chat [E]xplain' })
+      vim.keymap.set('v', '<leader>ce', '<cmd>CopilotChatExplain<CR>', { desc = '[C]opilot Chat [E]xplain' })
+      
+      vim.keymap.set('n', '<leader>cr', '<cmd>CopilotChatReview<CR>', { desc = '[C]opilot Chat [R]eview' })
+      vim.keymap.set('v', '<leader>cr', '<cmd>CopilotChatReview<CR>', { desc = '[C]opilot Chat [R]eview' })
+      
+      vim.keymap.set('n', '<leader>cf', '<cmd>CopilotChatFix<CR>', { desc = '[C]opilot Chat [F]ix' })
+      vim.keymap.set('v', '<leader>cf', '<cmd>CopilotChatFix<CR>', { desc = '[C]opilot Chat [F]ix' })
+      
+      vim.keymap.set('n', '<leader>co', '<cmd>CopilotChatOptimize<CR>', { desc = '[C]opilot Chat [O]ptimize' })
+      vim.keymap.set('v', '<leader>co', '<cmd>CopilotChatOptimize<CR>', { desc = '[C]opilot Chat [O]ptimize' })
+      
+      vim.keymap.set('n', '<leader>cd', '<cmd>CopilotChatDocs<CR>', { desc = '[C]opilot Chat [D]ocs' })
+      vim.keymap.set('v', '<leader>cd', '<cmd>CopilotChatDocs<CR>', { desc = '[C]opilot Chat [D]ocs' })
+      
+      vim.keymap.set('n', '<leader>ct', '<cmd>CopilotChatTests<CR>', { desc = '[C]opilot Chat [T]ests' })
+      vim.keymap.set('v', '<leader>ct', '<cmd>CopilotChatTests<CR>', { desc = '[C]opilot Chat [T]ests' })
+
+      -- Toggle chat
+      vim.keymap.set('n', '<leader>cq', '<cmd>CopilotChatToggle<CR>', { desc = '[C]opilot Chat [Q]uick toggle' })
+    end,
+  },
+
+  {
     'folke/which-key.nvim',
     event = 'VimEnter',
     opts = {
