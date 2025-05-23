@@ -120,7 +120,7 @@ require('lazy').setup({
 
   {
     'CopilotC-Nvim/CopilotChat.nvim',
-    branch = 'canary',
+    branch = 'main',
     dependencies = {
       { 'zbirenbaum/copilot.lua' }, -- or github/copilot.vim
       { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
@@ -131,18 +131,18 @@ require('lazy').setup({
       -- See Configuration section for rest
     },
     config = function(_, opts)
-      local chat = require('CopilotChat')
-      local select = require('CopilotChat.select')
-      
+      local chat = require 'CopilotChat'
+      local select = require 'CopilotChat.select'
+
       chat.setup(opts)
 
       -- Setup keymaps
       vim.keymap.set('n', '<leader>cc', '<cmd>CopilotChat<CR>', { desc = '[C]opilot [C]hat' })
       vim.keymap.set('v', '<leader>cc', '<cmd>CopilotChat<CR>', { desc = '[C]opilot [C]hat' })
-      
+
       -- Quick chat with your buffer
       vim.keymap.set('n', '<leader>cb', function()
-        local input = vim.fn.input('Quick Chat: ')
+        local input = vim.fn.input 'Quick Chat: '
         if input ~= '' then
           require('CopilotChat').ask(input, { selection = select.buffer })
         end
@@ -150,7 +150,7 @@ require('lazy').setup({
 
       -- Chat with selection
       vim.keymap.set('v', '<leader>cs', function()
-        local input = vim.fn.input('Quick Chat: ')
+        local input = vim.fn.input 'Quick Chat: '
         if input ~= '' then
           require('CopilotChat').ask(input, { selection = select.visual })
         end
@@ -159,19 +159,19 @@ require('lazy').setup({
       -- Predefined prompts
       vim.keymap.set('n', '<leader>ce', '<cmd>CopilotChatExplain<CR>', { desc = '[C]opilot Chat [E]xplain' })
       vim.keymap.set('v', '<leader>ce', '<cmd>CopilotChatExplain<CR>', { desc = '[C]opilot Chat [E]xplain' })
-      
+
       vim.keymap.set('n', '<leader>cr', '<cmd>CopilotChatReview<CR>', { desc = '[C]opilot Chat [R]eview' })
       vim.keymap.set('v', '<leader>cr', '<cmd>CopilotChatReview<CR>', { desc = '[C]opilot Chat [R]eview' })
-      
+
       vim.keymap.set('n', '<leader>cf', '<cmd>CopilotChatFix<CR>', { desc = '[C]opilot Chat [F]ix' })
       vim.keymap.set('v', '<leader>cf', '<cmd>CopilotChatFix<CR>', { desc = '[C]opilot Chat [F]ix' })
-      
+
       vim.keymap.set('n', '<leader>co', '<cmd>CopilotChatOptimize<CR>', { desc = '[C]opilot Chat [O]ptimize' })
       vim.keymap.set('v', '<leader>co', '<cmd>CopilotChatOptimize<CR>', { desc = '[C]opilot Chat [O]ptimize' })
-      
+
       vim.keymap.set('n', '<leader>cd', '<cmd>CopilotChatDocs<CR>', { desc = '[C]opilot Chat [D]ocs' })
       vim.keymap.set('v', '<leader>cd', '<cmd>CopilotChatDocs<CR>', { desc = '[C]opilot Chat [D]ocs' })
-      
+
       vim.keymap.set('n', '<leader>ct', '<cmd>CopilotChatTests<CR>', { desc = '[C]opilot Chat [T]ests' })
       vim.keymap.set('v', '<leader>ct', '<cmd>CopilotChatTests<CR>', { desc = '[C]opilot Chat [T]ests' })
 
@@ -373,6 +373,23 @@ require('lazy').setup({
         clangd = {},
         pyright = {},
         ts_ls = {},
+        html = {
+          settings = {
+            html = {
+              format = {
+                indentInnerHtml = true,
+                indentHandlebars = true,
+                wrapAttributes = 'auto',
+                wrapLineLength = 120,
+                unformatted = 'wbr',
+                contentUnformatted = 'pre,code,textarea',
+                endWithNewline = true,
+                preserveNewLines = true,
+                maxPreserveNewLines = 2,
+              },
+            },
+          },
+        },
         lua_ls = {
           settings = {
             Lua = {
@@ -434,6 +451,9 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         javascript = { 'prettier' },
+        html = { 'prettier' }, -- Add HTML formatting
+        css = { 'prettier' },
+        json = { 'prettier' },
       },
     },
   },
@@ -519,7 +539,10 @@ require('lazy').setup({
         enable = true,
         additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      indent = { 
+        enable = true, 
+        disable = { 'ruby' } -- Remove HTML from disable list if it was there
+      },
     },
   },
 
@@ -548,21 +571,21 @@ require('lazy').setup({
 
 -- Smart Tab functionality for Copilot
 local function smart_tab()
-  local copilot = require('copilot.suggestion')
-  
+  local copilot = require 'copilot.suggestion'
+
   -- If Copilot suggestion is visible, accept it
   if copilot.is_visible() then
     copilot.accept()
     return
   end
-  
+
   -- Check if blink.cmp completion menu is visible
-  local blink_cmp = require('blink.cmp')
+  local blink_cmp = require 'blink.cmp'
   if blink_cmp.is_visible() then
     blink_cmp.select_next()
     return
   end
-  
+
   -- Check if we're in a snippet and can jump
   local luasnip_ok, luasnip = pcall(require, 'luasnip')
   if luasnip_ok then
@@ -574,27 +597,27 @@ local function smart_tab()
       return
     end
   end
-  
+
   -- Default to normal tab behavior
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'n', false)
 end
 
 local function smart_shift_tab()
-  local blink_cmp = require('blink.cmp')
-  
+  local blink_cmp = require 'blink.cmp'
+
   -- If completion menu is visible, select previous item
   if blink_cmp.is_visible() then
     blink_cmp.select_prev()
     return
   end
-  
+
   -- If we can jump back in snippet
   local luasnip_ok, luasnip = pcall(require, 'luasnip')
   if luasnip_ok and luasnip.jumpable(-1) then
     luasnip.jump(-1)
     return
   end
-  
+
   -- Default to normal shift-tab behavior
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<S-Tab>', true, false, true), 'n', false)
 end
@@ -616,18 +639,83 @@ end, { desc = 'Dismiss Copilot suggestion' })
 vim.keymap.set('n', '<leader>tc', function()
   local buf = vim.api.nvim_get_current_buf()
   local ft = vim.bo[buf].filetype
-  
+
   if vim.b[buf].copilot_disabled then
     vim.b[buf].copilot_disabled = false
-    vim.cmd('Copilot enable')
+    vim.cmd 'Copilot enable'
     print('Copilot enabled for ' .. ft)
   else
     vim.b[buf].copilot_disabled = true
     require('copilot.suggestion').dismiss()
-    vim.cmd('Copilot disable')
+    vim.cmd 'Copilot disable'
     print('Copilot disabled for ' .. ft)
   end
 end, { desc = '[T]oggle [C]opilot for current buffer' })
+
+-- HTML-specific indentation settings
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'html', 'xml', 'xhtml' },
+  callback = function()
+    vim.bo.shiftwidth = 2
+    vim.bo.tabstop = 2
+    vim.bo.softtabstop = 2
+    vim.bo.expandtab = true
+    vim.bo.autoindent = true
+    vim.bo.smartindent = false
+    
+    -- Use treesitter for indentation if available, fallback to custom function
+    if vim.treesitter.get_parser(0, 'html', { error = false }) then
+      vim.bo.indentexpr = "v:lua.require'nvim-treesitter.indent'.get_indent()"
+    else
+      -- Custom indentation function for HTML
+      vim.bo.indentexpr = "v:lua.html_indent()"
+    end
+    
+    -- Set up specific indent keys for HTML
+    vim.bo.indentkeys = '0{,0},0),0],0},!^F,o,O,e,*<Return>,<>>,<<>,/'
+  end,
+})
+
+-- Custom HTML indentation function
+function _G.html_indent()
+  local line = vim.fn.line('.')
+  local prev_line = vim.fn.getline(line - 1)
+  local curr_line = vim.fn.getline(line)
+  
+  -- Get previous line indentation
+  local prev_indent = vim.fn.indent(line - 1)
+  
+  -- If previous line opens a tag, increase indent
+  if prev_line:match('<%s*[^/][^>]*[^/]>%s*$') then
+    return prev_indent + vim.bo.shiftwidth
+  end
+  
+  -- If current line closes a tag, decrease indent
+  if curr_line:match('^%s*</') then
+    return math.max(0, prev_indent - vim.bo.shiftwidth)
+  end
+  
+  -- If previous line is a closing tag, maintain same level for new opening tags
+  if prev_line:match('</[^>]+>%s*$') then
+    return prev_indent
+  end
+  
+  -- Default: maintain previous indentation
+  return prev_indent
+end
+
+-- Disable problematic LSP formatting for HTML if needed
+vim.api.nvim_create_autocmd('LspAttach', {
+  group = vim.api.nvim_create_augroup('html-lsp-config', { clear = true }),
+  callback = function(event)
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if client and client.name == 'html' then
+      -- Disable LSP formatting for HTML to prevent conflicts
+      client.server_capabilities.documentFormattingProvider = false
+      client.server_capabilities.documentRangeFormattingProvider = false
+    end
+  end,
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
