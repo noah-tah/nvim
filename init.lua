@@ -287,7 +287,7 @@ require('lazy').setup({
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
-
+          --NOTE:  LSP mapping, using Telescope
           map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
           map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
           map('grr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
@@ -537,7 +537,7 @@ require('lazy').setup({
         enable = true,
         additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { 
+      indent = {
         enable = false, -- Disable treesitter indenting
       },
     },
@@ -649,14 +649,17 @@ vim.keymap.set('n', '<leader>tc', function()
 end, { desc = '[T]oggle [C]opilot for current buffer' })
 
 -- Set global indentation settings - 4 spaces for everything
-vim.o.tabstop = 4        -- Number of spaces a tab counts for
-vim.o.shiftwidth = 4     -- Number of spaces for each step of (auto)indent
-vim.o.softtabstop = 4    -- Number of spaces a tab counts for while editing
-vim.o.expandtab = true   -- Use spaces instead of tabs
-vim.o.autoindent = true  -- Copy indent from current line when starting new line
+vim.o.tabstop = 4 -- Number of spaces a tab counts for
+vim.o.shiftwidth = 4 -- Number of spaces for each step of (auto)indent
+vim.o.softtabstop = 4 -- Number of spaces a tab counts for while editing
+vim.o.expandtab = true -- Use spaces instead of tabs
+vim.o.autoindent = true -- Copy indent from current line when starting new line
 vim.o.smartindent = false -- Disable smart indenting
-vim.o.cindent = false    -- Disable C-style indenting
-vim.o.indentexpr = ''    -- Disable expression-based indenting
+vim.o.cindent = false -- Disable C-style indenting
+vim.o.indentexpr = '' -- Disable expression-based indenting
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+--
+--
+vim.o.wrap = false
